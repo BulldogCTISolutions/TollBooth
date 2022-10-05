@@ -8,7 +8,7 @@ namespace UploadImages;
 internal class Program
 {
     private static List<MemoryStream> _sourceImages;
-    private static readonly Random _random = new();
+    private static readonly Random _random = new Random();
     private static string _blobStorageConnection;
 
     private static int Main( string[] args )

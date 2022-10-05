@@ -16,7 +16,7 @@ public static class ExportLicensePlates
             log.LogInformation( $"Retrieved {licensePlates.Count} license plates" );
             FileMethods fileMethods = new FileMethods( log );
             CancellationToken cancellationToken = CancellationToken.None;
-            bool uploaded = await fileMethods.GenerateAndSaveCsvAsync( licensePlates, cancellationToken ).ConfigureAwait( false );
+            bool uploaded = await fileMethods.GenerateAndSaveCsvAsync( licensePlates ).ConfigureAwait( false );
             if( uploaded )
             {
                 await databaseMethods.MarkLicensePlatesAsExportedAsync( licensePlates, cancellationToken ).ConfigureAwait( false );

@@ -18,7 +18,7 @@ internal class FileMethods
         this._blobClient = storageAccount.CreateCloudBlobClient();
     }
 
-    public async Task<bool> GenerateAndSaveCsvAsync( IEnumerable<LicensePlateDataDocument> licensePlates, CancellationToken /*cancellationToken*/ )
+    public async Task<bool> GenerateAndSaveCsvAsync( IEnumerable<LicensePlateDataDocument> licensePlates )
     {
         bool successful = false;
 

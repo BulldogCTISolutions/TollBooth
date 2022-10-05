@@ -12,12 +12,12 @@ public class FindLicensePlateText
         this._client = client;
     }
 
-    public async Task<string> GetLicensePlate( byte[] imageBytes )
+    public async Task<string> GetLicensePlateAsync( byte[] imageBytes, CancellationToken cancellationToken )
     {
-        return await this.MakeOCRRequest( imageBytes ).ConfigureAwait( false );
+        return await this.MakeOCRRequestAsync( imageBytes, cancellationToken ).ConfigureAwait( false );
     }
 
-    private async Task<string> MakeOCRRequest( byte[] imageBytes )
+    private async Task<string> MakeOCRRequestAsync( byte[] imageBytes, CancellationToken cancellationToken )
     {
         this._log.LogInformation( "Making OCR request" );
         string licensePlate = string.Empty;
@@ -37,15 +37,15 @@ public class FindLicensePlateText
         this._client.DefaultRequestHeaders.Accept.Add( new MediaTypeWithQualityHeaderValue( "application/json" ) );
 
         // Assemble the URI for the REST API Call.
-        Uri uri = new( uriBase + "?" + REQUEST_PARAMETERS );
+        Uri uri = new Uri( $"{uriBase}?{REQUEST_PARAMETERS}" );
 
         try
         {
             // Execute the REST API call, implementing our resiliency strategy.
-            HttpResponseMessage response = await resiliencyStrategy.ExecuteAsync( () => this._client.PostAsync( uri, GetImageHttpContent( imageBytes ) ) ).ConfigureAwait( false );
+            HttpResponseMessage response = await resiliencyStrategy.ExecuteAsync( () => this._client.PostAsync( uri, GetImageHttpContent( imageBytes ), cancellationToken ) ).ConfigureAwait( false );
 
             // Get the JSON response.
-            OCRResult result = await response.Content.ReadAsAsync<OCRResult>().ConfigureAwait( false );
+            OCRResult result = await response.Content.ReadAsAsync<OCRResult>( cancellationToken ).ConfigureAwait( false );
             licensePlate = GetLicensePlateTextFromResult( result );
         }
         catch( BrokenCircuitException bce )

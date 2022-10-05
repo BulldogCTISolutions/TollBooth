@@ -12,27 +12,30 @@ namespace TollBooth;
 
 public static class ProcessImage
 {
-    private static HttpClient _client;
-    private static string GetBlobNameFromUrl( string bloblUrl )
+    private static HttpClient _httpClient;
+    private static string GetBlobNameFromUrl( string blobUrl )
     {
-        Uri uri = new( bloblUrl );
+        Uri uri = new( blobUrl );
         CloudBlob cloudBlob = new( uri );
         return cloudBlob.Name;
     }
 
     [FunctionName( "ProcessImage" )]
     public static async Task Run( [EventGridTrigger] EventGridEvent eventGridEvent,
-        [Blob(blobPath: "{data.url}", access: FileAccess.Read,
-            Connection = "blobStorageConnection")] Stream incomingPlate,
+        [Blob( blobPath: "{data.url}", access: FileAccess.Read, Connection = "blobStorageConnection" )] Stream incomingPlate,
         ILogger log )
     {
         string licensePlateText = string.Empty;
         // Reuse the HttpClient across calls as much as possible so as not to exhaust all available sockets on the server on which it runs.
-        _client ??= new HttpClient();
+        _httpClient ??= new HttpClient();
 
         try
         {
-            if( incomingPlate != null )
+            if( eventGridEvent is null )
+            {
+                throw new ArgumentNullException( nameof( eventGridEvent ), "EventGridTrigger cannot be null" );
+            }
+            if( incomingPlate is not null )
             {
                 JsonSerializerOptions options = new()
                 {
@@ -54,7 +57,7 @@ public static class ProcessImage
                 // COMPLETE: licensePlateText = await new.....
 
                 // Send the details to Event Grid.
-                await new SendToEventGrid( log, _client ).SendLicensePlateData( new LicensePlateData()
+                await new SendToEventGrid( log, _httpClient ).SendLicensePlateDataAsync( new LicensePlateData()
                 {
                     FileName = name,
                     LicensePlateText = licensePlateText,

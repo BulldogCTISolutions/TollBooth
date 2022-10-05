@@ -12,7 +12,7 @@ public class SendToEventGrid
         this._client = client;
     }
 
-    public Task SendLicensePlateData( LicensePlateData data )
+    public Task SendLicensePlateDataAsync( LicensePlateData data/*, CancellationToken cancellationToken*/ )
     {
         // Will send to one of two routes, depending on success.
         // Event listeners will filter and act on events they need to
@@ -31,7 +31,7 @@ public class SendToEventGrid
         return Task.CompletedTask;
     }
 
-    private async Task Send( string eventType, string subject, LicensePlateData data )
+    private async Task SendAsync( string eventType, string subject, LicensePlateData data, CancellationToken cancellationToken )
     {
         // Get the API URL and the API key from settings.
         string uri = Environment.GetEnvironmentVariable( "eventGridTopicEndpoint" );
@@ -53,7 +53,7 @@ public class SendToEventGrid
 
         this._client.DefaultRequestHeaders.Clear();
         this._client.DefaultRequestHeaders.Add( "aeg-sas-key", key );
-        _ = await this._client.PostAsJsonAsync( uri, events )
+        _ = await this._client.PostAsJsonAsync( uri, events, cancellationToken )
                               .ConfigureAwait( false );
 
         this._log.LogInformation( $"Sent the following to the Event Grid topic: {events[0]}" );
