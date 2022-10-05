@@ -14,6 +14,10 @@ public class SendToEventGrid
 
     public Task SendLicensePlateDataAsync( LicensePlateData data/*, CancellationToken cancellationToken*/ )
     {
+        if( data is null )
+        {
+            throw new ArgumentNullException( nameof( data ), "Need license plate data first" );
+        }
         // Will send to one of two routes, depending on success.
         // Event listeners will filter and act on events they need to
         // process (save to database, move to manual checkup queue, etc.)
