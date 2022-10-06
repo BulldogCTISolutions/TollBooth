@@ -12,7 +12,7 @@ public class SendToEventGrid
         this._client = client;
     }
 
-    public Task SendLicensePlateDataAsync( LicensePlateData data/*, CancellationToken cancellationToken*/ )
+    public async Task SendLicensePlateDataAsync( LicensePlateData data, CancellationToken cancellationToken )
     {
         if( data is null )
         {
@@ -25,14 +25,16 @@ public class SendToEventGrid
         {
             // TODO 3: Modify send method to include the proper eventType name value for saving plate data.
             // COMPLETE: await Send(...);
+            await this.SendAsync( "savePlateData", "TollBooth/CustomerService", data, cancellationToken )
+                      .ConfigureAwait( false );
         }
         else
         {
             // TODO 4: Modify send method to include the proper eventType name value for queuing plate for manual review.
             // COMPLETE: await Send(...);
+            await this.SendAsync( "queuePlateForManualCheckup", "TollBooth/CustomerService", data, cancellationToken )
+                      .ConfigureAwait( false );
         }
-
-        return Task.CompletedTask;
     }
 
     private async Task SendAsync( string eventType, string subject, LicensePlateData data, CancellationToken cancellationToken )
@@ -41,9 +43,9 @@ public class SendToEventGrid
         string uri = Environment.GetEnvironmentVariable( "eventGridTopicEndpoint" );
         string key = Environment.GetEnvironmentVariable( "eventGridTopicKey" );
 
-        this._log.LogInformation( $"Sending license plate data to the {eventType} Event Grid type" );
+        this._log.LogInformation( $"Sending license plate data to the ({eventType}) Event Grid type" );
 
-        List<LicensePlateProcessedEvent<LicensePlateData>> events = new()
+        List<LicensePlateProcessedEvent<LicensePlateData>> events = new List<LicensePlateProcessedEvent<LicensePlateData>>()
         {
             new LicensePlateProcessedEvent<LicensePlateData>()
             {

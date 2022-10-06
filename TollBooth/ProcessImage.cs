@@ -15,8 +15,8 @@ public static class ProcessImage
     private static HttpClient _httpClient;
     private static string GetBlobNameFromUrl( string blobUrl )
     {
-        Uri uri = new( blobUrl );
-        CloudBlob cloudBlob = new( uri );
+        Uri uri = new Uri( blobUrl );
+        CloudBlob cloudBlob = new CloudBlob( uri );
         return cloudBlob.Name;
     }
 
@@ -37,24 +37,28 @@ public static class ProcessImage
             }
             if( incomingPlate is not null )
             {
-                JsonSerializerOptions options = new()
+                JsonSerializerOptions options = new JsonSerializerOptions()
                 {
                     PropertyNameCaseInsensitive = true
                 };
                 StorageBlobCreatedEventData createdEvent = eventGridEvent.Data.ToObjectFromJson<StorageBlobCreatedEventData>( options );
                 string name = GetBlobNameFromUrl( createdEvent.Url );
 
-                log.LogInformation( $"Processing {name}" );
+                log.LogInformation( $"Processing ({name})" );
 
                 byte[] licensePlateImage;
                 // Convert the incoming image stream to a byte array.
-                using( BinaryReader br = new( incomingPlate ) )
+                using( BinaryReader br = new BinaryReader( incomingPlate ) )
                 {
                     licensePlateImage = br.ReadBytes( (int) incomingPlate.Length );
                 }
 
                 // TODO 1: Set the licensePlateText value by awaiting a new FindLicensePlateText.GetLicensePlate method.
                 // COMPLETE: licensePlateText = await new.....
+                CancellationToken cancellationToken = CancellationToken.None;
+                licensePlateText = await new FindLicensePlateText( log, _httpClient )
+                                             .GetLicensePlateAsync( licensePlateImage, cancellationToken )
+                                             .ConfigureAwait( false );
 
                 // Send the details to Event Grid.
                 await new SendToEventGrid( log, _httpClient ).SendLicensePlateDataAsync( new LicensePlateData()
@@ -62,7 +66,7 @@ public static class ProcessImage
                     FileName = name,
                     LicensePlateText = licensePlateText,
                     TimeStamp = DateTime.UtcNow
-                } ).ConfigureAwait( false );
+                }, cancellationToken ).ConfigureAwait( false );
             }
         }
         catch( Exception ex )

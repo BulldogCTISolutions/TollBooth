@@ -25,8 +25,8 @@ public class FindLicensePlateText
         const string REQUEST_PARAMETERS = "language=unk&detectOrientation=true";
         // Get the API URL and the API key from settings.
         // TODO 2: Populate the below two variables with the correct AppSettings properties.
-        string uriBase = Environment.GetEnvironmentVariable( "" );
-        string apiKey = Environment.GetEnvironmentVariable( "" );
+        string uriBase = Environment.GetEnvironmentVariable( "computerVisionApiUrl" );
+        string apiKey = Environment.GetEnvironmentVariable( "computerVisionApiKey" );
 
         AsyncPolicyWrap<HttpResponseMessage> resiliencyStrategy = this.DefineAndRetrieveResiliencyStrategy();
 
