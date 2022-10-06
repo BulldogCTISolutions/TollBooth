@@ -259,3 +259,4 @@ paket-files/
 # Python Tools for Visual Studio (PTVS)
 __pycache__/
 *.pyc
+/TollBooth/Properties/PublishProfiles/TollBooth-App - Zip Deploy.pubxml
