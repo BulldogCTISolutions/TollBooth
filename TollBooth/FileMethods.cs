@@ -52,7 +52,7 @@ internal class FileMethods
                         stream.Position = 0;
 
                         // TODO 7: Asynchronously upload the blob from the memory stream.
-                        // COMPLETE: await blob...;
+                        await blob.UploadFromStreamAsync( stream ).ConfigureAwait( false );
 
                         successful = true;
                     }

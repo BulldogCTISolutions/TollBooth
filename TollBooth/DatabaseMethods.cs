@@ -1,5 +1,4 @@
-﻿
-namespace TollBooth;
+﻿namespace TollBooth;
 
 internal class DatabaseMethods
 {
@@ -18,24 +17,36 @@ internal class DatabaseMethods
     /// Retrieves all license plate records (documents) that have not yet been exported.
     /// </summary>
     /// <returns></returns>
-    public List<LicensePlateDataDocument> GetLicensePlatesToExport()
+    public async Task<List<LicensePlateDataDocument>> GetLicensePlatesToExportAsync( CancellationToken cancellationToken )
     {
         this._log.LogInformation( "Retrieving license plates to export" );
-        List<LicensePlateDataDocument> licensePlates;
+        List<LicensePlateDataDocument> licensePlates = new List<LicensePlateDataDocument>();
 
-        using( CosmosClient client = new( this._endpointUrl, this._authorizationKey ) )
+        using( CosmosClient client = new CosmosClient( this._endpointUrl, this._authorizationKey ) )
         {
             Database database = client.GetDatabase( this._databaseId );
             Container container = database.GetContainer( this._collectionId );
 
             // MaxItemCount value tells the document query to retrieve 100 documents at a time until all are returned.
             // TODO 5: Retrieve a List of LicensePlateDataDocument objects from the collectionLink where the exported value is false.
-            // COMPLETE: licensePlates = _client.CreateDocumentQuery ...
+
+            string sql = @"SELECT VALUE c FROM c WHERE c.exported = @exported";
+
+            QueryDefinition query = new QueryDefinition( sql ).WithParameter( "@exported", false );
+
+            FeedIterator<LicensePlateDataDocument> iterator = container.GetItemQueryIterator<LicensePlateDataDocument>( query );
+            FeedResponse<LicensePlateDataDocument> responses = await iterator.ReadNextAsync( cancellationToken ).ConfigureAwait( false );
+
+            foreach( LicensePlateDataDocument plate in responses )
+            {
+                licensePlates.Add( plate );
+            }
+
             // TODO 6: Remove the line below.
-            licensePlates = new List<LicensePlateDataDocument>();
+            //licensePlates = new List<LicensePlateDataDocument>();
         }
 
-        int exportedCount = licensePlates.Count();
+        int exportedCount = licensePlates.Count;
         this._log.LogInformation( $"{exportedCount} license plates found that are ready for export" );
         return licensePlates;
     }
@@ -52,7 +63,7 @@ internal class DatabaseMethods
     {
         this._log.LogInformation( "Updating license plate documents exported values to true" );
 
-        using( CosmosClient client = new( this._endpointUrl, this._authorizationKey ) )
+        using( CosmosClient client = new CosmosClient( this._endpointUrl, this._authorizationKey ) )
         {
             Database database = client.GetDatabase( this._databaseId );
             Container container = database.GetContainer( this._collectionId );

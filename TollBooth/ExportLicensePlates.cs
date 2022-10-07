@@ -8,14 +8,14 @@ public static class ExportLicensePlates
     {
         int exportedCount = 0;
         log.LogInformation( "Finding license plate data to export" );
+        CancellationToken cancellationToken = CancellationToken.None;
 
-        DatabaseMethods databaseMethods = new( log );
-        List<LicensePlateDataDocument> licensePlates = databaseMethods.GetLicensePlatesToExport();
+        DatabaseMethods databaseMethods = new DatabaseMethods( log );
+        List<LicensePlateDataDocument> licensePlates = await databaseMethods.GetLicensePlatesToExportAsync( cancellationToken ).ConfigureAwait( false );
         if( licensePlates.Any() )
         {
             log.LogInformation( $"Retrieved {licensePlates.Count} license plates" );
             FileMethods fileMethods = new FileMethods( log );
-            CancellationToken cancellationToken = CancellationToken.None;
             bool uploaded = await fileMethods.GenerateAndSaveCsvAsync( licensePlates ).ConfigureAwait( false );
             if( uploaded )
             {

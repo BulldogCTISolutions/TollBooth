@@ -260,3 +260,4 @@ paket-files/
 __pycache__/
 *.pyc
 /TollBooth/Properties/PublishProfiles/TollBooth-App - Zip Deploy.pubxml
+/TollBooth/local.settings.json
